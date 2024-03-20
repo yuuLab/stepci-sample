@@ -1,0 +1,24 @@
+image: golang:1.22
+
+pipelines:
+  default:
+    - step:
+        name: "Unit Test and Build"
+        script:
+          - echo "Starting go test..."
+          - go get
+          - go test ./...
+          - echo "Starting go build..."
+          - go build -o ./main
+        artifacts:
+          - main
+    - step:
+        name: "API Test Step CI"
+        script:
+          - echo "Running API Server..."
+          - ./main &
+          - echo "Staring Step CI Test..."
+          - docker run --add-host host.docker.internal:host-gateway -v "$(pwd)"/tests:/tests ghcr.io/stepci/stepci /tests/workflow.yml -e HOST=host.docker.internal:8080
+          - echo "stepci test completed."
+        services:
+          - docker

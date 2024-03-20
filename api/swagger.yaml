@@ -1,0 +1,140 @@
+openapi: 3.0.1
+info:
+  version: "1.0"
+  title: Test API
+servers:
+  - url: "http://localhost:8080"
+    description: Test server
+paths:
+  /api/v1/users/login:
+    post:
+      tags:
+        - Users
+      summary: ユーザーログイン
+      operationId: post-users-login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: samples@example.com
+                password:
+                  type: string
+                  example: xxxxxxxxx
+              required:
+                - email
+                - password
+      responses:
+        "201":
+          headers:
+            Set-Cookie:
+              description: セッションID
+              schema:
+                type: string
+              # 試験用の返却値のため設定は最低限
+              example: testSessionId=xxxx;path="*"
+          description: Successfully logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                    example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                required:
+                  - user_id
+  /api/v1/items:
+    post:
+      tags:
+        - Items
+      summary: 商品作成
+      operationId: post-items
+      parameters:
+        - name: testSessionId
+          in: cookie
+          required: true
+          schema:
+            type: string
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: チョコレート
+                price:
+                  type: integer
+                  example: 1000
+              required:
+                - name
+                - price
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_id:
+                    type: string
+                    format: uuid
+                    example: yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy
+                required:
+                  - item_id
+  /api/v1/items/{item_id}:
+    get:
+      tags:
+        - Items
+      summary: 商品取得
+      operationId: get-item-by-id
+      parameters:
+        - name: testSessionId
+          in: cookie
+          required: true
+          schema:
+            type: string
+        - name: item_id
+          in: path
+          schema:
+            type: string
+          required: true
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item_id:
+                    type: string
+                    format: uuid
+                    example: yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy
+                  name:
+                    type: string
+                    example: チョコレート
+                  price:
+                    type: integer
+                    example: 1000
+                required:
+                  - item_id
+                  - name
+                  - price
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: testSessionId
